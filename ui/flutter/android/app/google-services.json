@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "57141874608",
+    "project_id": "gopeed-app",
+    "storage_bucket": "gopeed-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57141874608:android:80b8d079fd6383f0be1075",
+        "android_client_info": {
+          "package_name": "com.gopeed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4TUgNPL-a9-SR_slysOeey4wVcWIVUQc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

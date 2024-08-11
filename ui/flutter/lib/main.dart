@@ -2,7 +2,10 @@ import 'package:args/args.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gopeed/firebase_options.dart';
+import 'package:uuid/uuid.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:ambilytics/ambilytics.dart' as ambilytics;
 
 import 'api/api.dart' as api;
 import 'app/modules/app/controllers/app_controller.dart';
@@ -107,4 +110,16 @@ Future<void> onStart() async {
       }
     });
   }
+
+  const userIdKey = 'userId';
+  var userId = Database.instance.box.get(userIdKey) as String?;
+  if (userId == null) {
+    userId = const Uuid().v1();
+    Database.instance.box.put(userIdKey, userId);
+  }
+  await ambilytics.initAnalytics(
+      measurementId: 'G-GD24519H5S',
+      apiSecret: 'lLzhYrBnTQWTN-L7nLRaPQ',
+      firebaseOptions: DefaultFirebaseOptions.currentPlatform,
+      userId: userId);
 }
