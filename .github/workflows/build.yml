@@ -689,10 +689,8 @@ jobs:
             VERSION=${{ env.VERSION }}
             IN_DOCKER=true
           platforms: |
-            linux/386
             linux/amd64
             linux/arm64
-            linux/arm/v7
           tags: |
             wuxs/gopeed:latest
             wuxs/gopeed:v${{ env.VERSION }}
