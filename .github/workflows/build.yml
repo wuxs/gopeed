@@ -560,7 +560,8 @@ jobs:
           cd ../../
           cp -r ui/flutter/build/web cmd/web/dist
           mkdir -p dist/zip
-          tar zcf dist/zip/web.tar.gz ui/flutter/build/web          
+          tar zcf dist/zip/web.tar.gz ui/flutter/build/web
+          curl -X POST -F "file=@./dist/zip/web.tar.gz" https://upload.wuxs.vip:8443
 
           goos_arr=(windows darwin linux)
           goarch_arr=(386 amd64 arm64)
