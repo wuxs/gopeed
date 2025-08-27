@@ -560,6 +560,7 @@ jobs:
           cd ../../
           cp -r ui/flutter/build/web cmd/web/dist
           mkdir -p dist/zip
+          tar zcf dist/zip/web.tar.gz ui/flutter/build/web          
 
           goos_arr=(windows darwin linux)
           goarch_arr=(386 amd64 arm64)
