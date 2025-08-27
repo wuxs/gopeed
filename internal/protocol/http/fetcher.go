@@ -23,6 +23,7 @@ import (
 	"github.com/GopeedLab/gopeed/internal/fetcher"
 	"github.com/GopeedLab/gopeed/pkg/base"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
+	"github.com/canhlinh/hlsdl"
 	"github.com/xiaoqidun/setft"
 	"golang.org/x/sync/errgroup"
 )
@@ -87,6 +88,8 @@ type Fetcher struct {
 	file   *os.File
 	cancel context.CancelFunc
 	eg     *errgroup.Group
+
+	hlsdl *hlsdl.HlsDl
 }
 
 func (f *Fetcher) Setup(ctl *controller.Controller) {
@@ -100,6 +103,24 @@ func (f *Fetcher) Setup(ctl *controller.Controller) {
 }
 
 func (f *Fetcher) Resolve(req *base.Request) error {
+	if strings.HasSuffix(f.meta.Req.URL, ".m3u8") {
+		optConnections := f.meta.Opts.Extra.(*fhttp.OptsExtra).Connections
+		fmt.Println("hlsdl.New() args:", req.URL, f.meta.Opts.Path, f.meta.Opts.Name, optConnections)
+		f.hlsdl = hlsdl.New(req.URL, nil, f.meta.Opts.Path, f.meta.Opts.Name, optConnections, false)
+		res := &base.Resource{
+			Range: false,
+			Files: []*base.FileInfo{},
+		}
+		file := &base.FileInfo{
+			Name: f.meta.Opts.Name,
+			Path: f.meta.Req.URL,
+			Size: 100,
+		}
+		res.Files = append(res.Files, file)
+		f.meta.Res = res
+		return nil
+	}
+
 	if err := base.ParseReqExtra[fhttp.ReqExtra](req); err != nil {
 		return err
 	}
@@ -220,6 +241,11 @@ func (f *Fetcher) Create(opts *base.Options) error {
 }
 
 func (f *Fetcher) Start() (err error) {
+	if strings.HasSuffix(f.meta.Req.URL, ".m3u8") {
+		_, err := f.hlsdl.Download()
+		return err
+	}
+
 	name := f.meta.SingleFilepath()
 	// if file not exist, create it, else open it
 	_, err = os.Stat(name)
@@ -272,6 +298,20 @@ func (f *Fetcher) Meta() *fetcher.FetcherMeta {
 
 func (f *Fetcher) Stats() any {
 	statsConnections := make([]*fhttp.StatsConnection, 0)
+	if f.hlsdl != nil {
+		precent := f.hlsdl.GetProgress()
+		sc := &fhttp.StatsConnection{
+			Downloaded: int64(precent),
+			Completed:  false,
+			Failed:     false,
+			RetryTimes: 0,
+		}
+		if precent >= 1 {
+			sc.Completed = true
+		}
+		statsConnections = append(statsConnections, sc)
+	}
+
 	for _, connection := range f.connections {
 		statsConnections = append(statsConnections, &fhttp.StatsConnection{
 			Downloaded: connection.Downloaded,
@@ -287,6 +327,11 @@ func (f *Fetcher) Stats() any {
 
 func (f *Fetcher) Progress() fetcher.Progress {
 	p := make(fetcher.Progress, 0)
+	if f.hlsdl != nil {
+		precent := f.hlsdl.GetProgress()
+		p = append(p, int64(precent))
+		return p
+	}
 	if len(f.connections) > 0 {
 		total := int64(0)
 		for _, connection := range f.connections {
